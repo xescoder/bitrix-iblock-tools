@@ -61,25 +61,28 @@ class CIBlockTools
             )
         );
         while($arr = $db->Fetch()){
-            $this->arIBlockIds[$arr['CODE']] = intval($arr['ID']);
+            if($arr['CODE']){
+                $this->arIBlockIds[$arr['CODE']] = intval($arr['ID']);
+            }
         }
     }
 
     private function SetProperties(){
+        $this->arPropertyIds = array();
+        $this->arPropertyValueIds = array();
+
         $db = CIBlockProperty::GetList(
             false,
             array('ACTIVE' => 'Y')
         );
-        while($arr = $db->Fetch())
-        {
+        while($arr = $db->Fetch()){
             if(!$this->arPropertyIds[$arr['IBLOCK_ID']])
                 $this->arPropertyIds[$arr['IBLOCK_ID']] = array();
 
-            if($arr['CODE'] && $arr['ID']){
-                $this->arPropertyIds[$arr['IBLOCK_ID']][$arr['CODE']] = $arr['ID'];
+            if($arr['CODE']){
+                $this->arPropertyIds[$arr['IBLOCK_ID']][$arr['CODE']] = intval($arr['ID']);
 
-                if($arr['PROPERTY_TYPE'] == 'L')
-                {
+                if($arr['PROPERTY_TYPE'] == 'L'){
                     if(!$this->arPropertyValueIds[$arr['ID']])
                         $this->arPropertyValueIds[$arr['ID']] = array();
 
@@ -87,10 +90,9 @@ class CIBlockTools
                         false,
                         array('PROPERTY_ID' => $arr['ID'])
                     );
-                    while($arrProp=$resProp->Fetch())
-                    {
-                        if($arrProp['ID']){
-                            $this->arPropertyValueIds[$arr['ID']][$arrProp['XML_ID']] = $arrProp['ID'];
+                    while($arrProp=$resProp->Fetch()){
+                        if($arrProp['XML_ID']){
+                            $this->arPropertyValueIds[$arr['ID']][$arrProp['XML_ID']] = intval($arrProp['ID']);
                         }
                     }
                 }
@@ -99,20 +101,33 @@ class CIBlockTools
     }
 
     public function GetIBlockId($iblockCode){
-        return $this->arIBlockIds[$iblockCode];
+        if(isset($this->arIBlockIds[$iblockCode]))
+            return $this->arIBlockIds[$iblockCode];
+
+        return null;
     }
 
     public function GetPropertyId($iblockCode, $propCode){
         $iblockId = $this->GetIBlockId($iblockCode);
-        return $this->arPropertyIds[$iblockId][$propCode];
+        if(!$iblockId) return null;
+
+        if(isset($this->arPropertyIds[$iblockId]) && isset($this->arPropertyIds[$iblockId][$propCode]))
+            return $this->arPropertyIds[$iblockId][$propCode];
+
+        return null;
     }
 
     public function GetEnumId($iblockCode, $propCode, $xmlId){
         $propId = $this->GetPropertyId($iblockCode, $propCode);
-        return $this->arPropertyValueIds[$propId][$xmlId];
+        if(!$propId) return null;
+
+        if(isset($this->arPropertyValueIds[$propId]) && isset($this->arPropertyValueIds[$propId][$xmlId]))
+            return $this->arPropertyValueIds[$propId][$xmlId];
+
+        return null;
     }
 
-    public function __get($name) {
+    public function __get($name){
         $name = strtolower($name);
         return $this->GetIBlockId($name);
     }
