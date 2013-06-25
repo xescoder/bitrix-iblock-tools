@@ -16,44 +16,43 @@ class CIBlockTools
         return self::$tools;
     }
 
-    private $arBlocks;
-    private $arEnums;
-    private $arConsts;
+    private $arIBlockIds;
+    private $arPropertyIds;
+    private $arPropertyValueIds;
 
     private function __construct() {
 
         $cache = new CPHPCache();
-        $cache_time = 86400; // сутки
-        $cache_id = 'Settings';
-        $cache_path = '/' . SITE_ID . '/Settings/';
+        $cache_time = 2592000; // month
+        $cache_id = 'CIBlockTools';
+        $cache_path = '/CIBlockTools/';
 
         if($cache->InitCache($cache_time, $cache_id, $cache_path))
         {
             $vars = $cache->GetVars();
-            $this->arBlocks = $vars['arBlocks'];
-            $this->arEnums = $vars['arEnums'];
-            $this->arConsts = $vars['arConsts'];
+            $this->arIBlockIds = $vars['arIBlockIds'];
+            $this->arPropertyIds = $vars['arPropertyIds'];
+            $this->arPropertyValueIds = $vars['arPropertyValueIds'];
         }
         else
         {
             $cache->StartDataCache($cache_time, $cache_id, $cache_path);
 
             if(CModule::IncludeModule("iblock")){
-                $this->SetBlocks();
-                $this->SetEnums();
-                $this->SetConsts();
+                $this->SetIBlocks();
+                $this->SetProperties();
             }
 
             $cache->EndDataCache(array(
-                'arBlocks' => $this->arBlocks,
-                'arEnums'  => $this->arEnums,
-                'arConsts' => $this->arConsts,
+                'arIBlockIds' => $this->arIBlockIds,
+                'arPropertyIds'  => $this->arPropertyIds,
+                'arPropertyValueIds' => $this->arPropertyValueIds,
             ));
         }
     }
 
-    private function SetBlocks(){
-        $this->arBlocks = array();
+    private function SetIBlocks(){
+        $this->arIBlockIds = array();
 
         $db = CIBlock::GetList(
             array('ID' => 'ASC'),
@@ -62,56 +61,59 @@ class CIBlockTools
             )
         );
         while($arr = $db->Fetch()){
-            $this->arBlocks[$arr['CODE']] = intval($arr['ID']);
+            $this->arIBlockIds[$arr['CODE']] = intval($arr['ID']);
         }
     }
 
-    private function SetEnums(){
-        $this->arEnums = array();
-
-        $dbProp = CIBlockProperty::GetList(
-            array('ID' => 'ASC'),
-            array(
-                'PROPERTY_TYPE' => 'L',
-                'ACTIVE' => 'Y'
-            )
+    private function SetProperties(){
+        $db = CIBlockProperty::GetList(
+            false,
+            array('ACTIVE' => 'Y')
         );
-        while($arrProp = $dbProp->Fetch()){
-            $iblockId = intval($arrProp['IBLOCK_ID']);
-            $code = $arrProp['CODE'];
+        while($arr = $db->Fetch())
+        {
+            if(!$this->arPropertyIds[$arr['IBLOCK_ID']])
+                $this->arPropertyIds[$arr['IBLOCK_ID']] = array();
 
-            $this->arEnums[$iblockId][$code] = array();
+            if($arr['CODE'] && $arr['ID']){
+                $this->arPropertyIds[$arr['IBLOCK_ID']][$arr['CODE']] = $arr['ID'];
 
-            $dbVal = CIBlockPropertyEnum::GetList(
-                array('ID' => 'ASC'),
-                array(
-                    'PROPERTY_ID' => $arrProp['ID']
-                )
-            );
-            while($arVal = $dbVal->Fetch()){
-                $this->arEnums[$iblockId][$code][$arVal['XML_ID']] = intval($arVal['ID']);
+                if($arr['PROPERTY_TYPE'] == 'L')
+                {
+                    if(!$this->arPropertyValueIds[$arr['ID']])
+                        $this->arPropertyValueIds[$arr['ID']] = array();
+
+                    $resProp = CIBlockPropertyEnum::GetList(
+                        false,
+                        array('PROPERTY_ID' => $arr['ID'])
+                    );
+                    while($arrProp=$resProp->Fetch())
+                    {
+                        if($arrProp['ID']){
+                            $this->arPropertyValueIds[$arr['ID']][$arrProp['XML_ID']] = $arrProp['ID'];
+                        }
+                    }
+                }
             }
         }
     }
 
-
-    public function GetIblockId($iblockCode){
-        return $this->arBlocks[$iblockCode];
+    public function GetIBlockId($iblockCode){
+        return $this->arIBlockIds[$iblockCode];
     }
 
-    public function GetEnumId($iblockCode, $propCode, $valCode){
-        $iblockId = $this->GetIblockId($iblockCode);
-        return $this->arEnums[$iblockId][$propCode][$valCode];
+    public function GetPropertyId($iblockCode, $propCode){
+        $iblockId = $this->GetIBlockId($iblockCode);
+        return $this->arPropertyIds[$iblockId][$propCode];
+    }
+
+    public function GetEnumId($iblockCode, $propCode, $xmlId){
+        $propId = $this->GetPropertyId($iblockCode, $propCode);
+        return $this->arPropertyValueIds[$propId][$xmlId];
     }
 
     public function __get($name) {
         $name = strtolower($name);
-        $iblockId = $this->GetIblockId($name);
-
-        if($iblockId){
-            return $iblockId;
-        }
-
-        return null;
+        return $this->GetIBlockId($name);
     }
 }
