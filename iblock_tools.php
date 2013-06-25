@@ -6,6 +6,11 @@
 class CIBlockTools
 {
     private static $tools = null;
+    private static $cacheKey = 'CIBlockTools';
+
+    private $arIBlockIds;
+    private $arPropertyIds;
+    private $arPropertyValueIds;
 
     /**
      * Init service
@@ -16,16 +21,20 @@ class CIBlockTools
         return self::$tools;
     }
 
-    private $arIBlockIds;
-    private $arPropertyIds;
-    private $arPropertyValueIds;
+    /**
+     * Clear service cache
+     * @return boolean
+     */
+    public static function ClearCache(){
+        DeleteDirFilesEx('/bitrix/cache/' . self::$cacheKey);
+        return true;
+    }
 
     private function __construct() {
-
         $cache = new CPHPCache();
         $cache_time = 2592000; // month
-        $cache_id = 'CIBlockTools';
-        $cache_path = '/CIBlockTools/';
+        $cache_id = self::$cacheKey;
+        $cache_path = '/'.self::$cacheKey.'/';
 
         if($cache->InitCache($cache_time, $cache_id, $cache_path))
         {
@@ -150,3 +159,13 @@ class CIBlockTools
         return $this->GetIBlockId($name);
     }
 }
+
+// IBlock events
+AddEventHandler('iblock', 'OnAfterIBlockAdd', array('CIBlockTools', 'ClearCache'));
+AddEventHandler('iblock', 'OnAfterIBlockUpdate', array('CIBlockTools', 'ClearCache'));
+AddEventHandler('iblock', 'OnBeforeIBlockDelete', array('CIBlockTools', 'ClearCache'));
+
+// IBlock property events
+AddEventHandler('iblock', 'OnAfterIBlockPropertyAdd', array('CIBlockTools', 'ClearCache'));
+AddEventHandler('iblock', 'OnAfterIBlockPropertyUpdate', array('CIBlockTools', 'ClearCache'));
+AddEventHandler('iblock', 'OnBeforeIBlockPropertyDelete', array('CIBlockTools', 'ClearCache'));
