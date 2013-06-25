@@ -47,10 +47,8 @@ class CIBlockTools
         {
             $cache->StartDataCache($cache_time, $cache_id, $cache_path);
 
-            if(CModule::IncludeModule("iblock")){
-                $this->SetIBlocks();
-                $this->SetProperties();
-            }
+            $this->SetIBlocks();
+            $this->SetProperties();
 
             $cache->EndDataCache(array(
                 'arIBlockIds' => $this->arIBlockIds,
@@ -62,6 +60,8 @@ class CIBlockTools
 
     private function SetIBlocks(){
         $this->arIBlockIds = array();
+
+        if(!CModule::IncludeModule("iblock")) return;
 
         $db = CIBlock::GetList(
             array('ID' => 'ASC'),
@@ -80,19 +80,21 @@ class CIBlockTools
         $this->arPropertyIds = array();
         $this->arPropertyValueIds = array();
 
+        if(!CModule::IncludeModule("iblock")) return;
+
         $db = CIBlockProperty::GetList(
             false,
             array('ACTIVE' => 'Y')
         );
         while($arr = $db->Fetch()){
-            if(!$this->arPropertyIds[$arr['IBLOCK_ID']])
+            if(is_null($this->arPropertyIds[$arr['IBLOCK_ID']]))
                 $this->arPropertyIds[$arr['IBLOCK_ID']] = array();
 
             if($arr['CODE']){
                 $this->arPropertyIds[$arr['IBLOCK_ID']][$arr['CODE']] = intval($arr['ID']);
 
                 if($arr['PROPERTY_TYPE'] == 'L'){
-                    if(!$this->arPropertyValueIds[$arr['ID']])
+                    if(is_null($this->arPropertyValueIds[$arr['ID']]))
                         $this->arPropertyValueIds[$arr['ID']] = array();
 
                     $resProp = CIBlockPropertyEnum::GetList(
