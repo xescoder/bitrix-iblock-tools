@@ -100,6 +100,11 @@ class CIBlockTools
         }
     }
 
+    /**
+     * Get IBlock ID
+     * @param string $iblockCode IBlock CODE
+     * @return integer|null
+     */
     public function GetIBlockId($iblockCode){
         if(isset($this->arIBlockIds[$iblockCode]))
             return $this->arIBlockIds[$iblockCode];
@@ -107,6 +112,12 @@ class CIBlockTools
         return null;
     }
 
+    /**
+     * Get IBlock property ID
+     * @param string $iblockCode IBlock CODE
+     * @param string $propCode Property CODE
+     * @return integer|null
+     */
     public function GetPropertyId($iblockCode, $propCode){
         $iblockId = $this->GetIBlockId($iblockCode);
         if(!$iblockId) return null;
@@ -117,7 +128,14 @@ class CIBlockTools
         return null;
     }
 
-    public function GetEnumId($iblockCode, $propCode, $xmlId){
+    /**
+     * Get IBlock property enum value ID
+     * @param string $iblockCode IBlock CODE
+     * @param string $propCode Property CODE
+     * @param string $xmlId Property value XML_ID
+     * @return integer|null
+     */
+    public function GetPropertyEnumValueId($iblockCode, $propCode, $xmlId){
         $propId = $this->GetPropertyId($iblockCode, $propCode);
         if(!$propId) return null;
 
