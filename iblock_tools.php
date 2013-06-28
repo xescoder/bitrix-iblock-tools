@@ -16,16 +16,46 @@ class CIBlockTools
      * Init service
      * @return CIBlockTools
      */
-    public static function Init(){
+    private static function Init(){
         if(!self::$tools) self::$tools = new CIBlockTools();
         return self::$tools;
+    }
+
+    /**
+     * Get IBlock ID
+     * @param string $iblockCode IBlock CODE
+     * @return integer|null
+     */
+    public static function GetIBlockId($iblockCode){
+        return self::Init()->GetIBlockIdPr($iblockCode);
+    }
+
+    /**
+     * Get IBlock property ID
+     * @param string $iblockCode IBlock CODE
+     * @param string $propCode Property CODE
+     * @return integer|null
+     */
+    public static function GetPropertyId($iblockCode, $propCode){
+        return self::Init()->GetPropertyIdPr($iblockCode, $propCode);
+    }
+
+    /**
+     * Get IBlock property enum value ID
+     * @param string $iblockCode IBlock CODE
+     * @param string $propCode Property CODE
+     * @param string $xmlId Property value XML_ID
+     * @return integer|null
+     */
+    public static function GetPropertyEnumValueId($iblockCode, $propCode, $xmlId){
+        return self::Init()->GetPropertyEnumValueIdPr($iblockCode, $propCode, $xmlId);
     }
 
     /**
      * Clear service cache
      * @return boolean
      */
-    public static function ClearCache(){
+    public static function Update(){
         DeleteDirFilesEx('/bitrix/cache/' . self::$cacheKey);
         return true;
     }
@@ -111,25 +141,14 @@ class CIBlockTools
         }
     }
 
-    /**
-     * Get IBlock ID
-     * @param string $iblockCode IBlock CODE
-     * @return integer|null
-     */
-    public function GetIBlockId($iblockCode){
+    private function GetIBlockIdPr($iblockCode){
         if(isset($this->arIBlockIds[$iblockCode]))
             return $this->arIBlockIds[$iblockCode];
 
         return null;
     }
 
-    /**
-     * Get IBlock property ID
-     * @param string $iblockCode IBlock CODE
-     * @param string $propCode Property CODE
-     * @return integer|null
-     */
-    public function GetPropertyId($iblockCode, $propCode){
+    private function GetPropertyIdPr($iblockCode, $propCode){
         $iblockId = $this->GetIBlockId($iblockCode);
         if(!$iblockId) return null;
 
@@ -139,14 +158,7 @@ class CIBlockTools
         return null;
     }
 
-    /**
-     * Get IBlock property enum value ID
-     * @param string $iblockCode IBlock CODE
-     * @param string $propCode Property CODE
-     * @param string $xmlId Property value XML_ID
-     * @return integer|null
-     */
-    public function GetPropertyEnumValueId($iblockCode, $propCode, $xmlId){
+    private function GetPropertyEnumValueIdPr($iblockCode, $propCode, $xmlId){
         $propId = $this->GetPropertyId($iblockCode, $propCode);
         if(!$propId) return null;
 
@@ -155,19 +167,14 @@ class CIBlockTools
 
         return null;
     }
-
-    public function __get($name){
-        $name = strtolower($name);
-        return $this->GetIBlockId($name);
-    }
 }
 
 // IBlock events
-AddEventHandler('iblock', 'OnAfterIBlockAdd', array('CIBlockTools', 'ClearCache'));
-AddEventHandler('iblock', 'OnAfterIBlockUpdate', array('CIBlockTools', 'ClearCache'));
-AddEventHandler('iblock', 'OnBeforeIBlockDelete', array('CIBlockTools', 'ClearCache'));
+AddEventHandler('iblock', 'OnAfterIBlockAdd', array('CIBlockTools', 'Update'));
+AddEventHandler('iblock', 'OnAfterIBlockUpdate', array('CIBlockTools', 'Update'));
+AddEventHandler('iblock', 'OnBeforeIBlockDelete', array('CIBlockTools', 'Update'));
 
 // IBlock property events
-AddEventHandler('iblock', 'OnAfterIBlockPropertyAdd', array('CIBlockTools', 'ClearCache'));
-AddEventHandler('iblock', 'OnAfterIBlockPropertyUpdate', array('CIBlockTools', 'ClearCache'));
-AddEventHandler('iblock', 'OnBeforeIBlockPropertyDelete', array('CIBlockTools', 'ClearCache'));
+AddEventHandler('iblock', 'OnAfterIBlockPropertyAdd', array('CIBlockTools', 'Update'));
+AddEventHandler('iblock', 'OnAfterIBlockPropertyUpdate', array('CIBlockTools', 'Update'));
+AddEventHandler('iblock', 'OnBeforeIBlockPropertyDelete', array('CIBlockTools', 'Update'));
