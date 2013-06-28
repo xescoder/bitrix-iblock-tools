@@ -17,12 +17,12 @@ Bitrix IBlock Tools
 
 `````php
 // Получение ID инфоблока по коду
-$iblockId = CIBlockTools::Init()->GetIBlockId('код инфоблока');
+$iblockId = CIBlockTools::GetIBlockId('код инфоблока');
 
 // Получение ID свойства по коду инфоблока и коду свойства
-$propertyId = CIBlockTools::Init()->GetPropertyId('код инфоблока', 'код свойства');
+$propertyId = CIBlockTools::GetPropertyId('код инфоблока', 'код свойства');
 
 // Получение ID значение свойства типа "список"
 // по коду инфоблока, коду свойства и XML_ID значения свойства
-$propertyValueId = CIBlockTools::Init()->GetPropertyEnumValueId('код инфоблока', 'код свойства', 'XML_ID значения свойства');
+$propertyValueId = CIBlockTools::GetPropertyEnumValueId('код инфоблока', 'код свойства', 'XML_ID значения свойства');
 `````
