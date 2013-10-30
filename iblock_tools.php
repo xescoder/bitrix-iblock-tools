@@ -113,7 +113,7 @@ class CIBlockTools
         if(!CModule::IncludeModule("iblock")) return;
 
         $db = CIBlockProperty::GetList(
-            false,
+            array(),
             array('ACTIVE' => 'Y')
         );
         while($arr = $db->Fetch()){
@@ -128,7 +128,7 @@ class CIBlockTools
                         $this->arPropertyValueIds[$arr['ID']] = array();
 
                     $resProp = CIBlockPropertyEnum::GetList(
-                        false,
+                        array(),
                         array('PROPERTY_ID' => $arr['ID'])
                     );
                     while($arrProp=$resProp->Fetch()){
