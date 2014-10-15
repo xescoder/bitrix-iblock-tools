@@ -97,6 +97,7 @@ class CIBlockTools
             array('ID' => 'ASC'),
             array(
                 'ACTIVE' => 'Y',
+                'CHECK_PERMISSIONS' => 'N'
             )
         );
         while($arr = $db->Fetch()){
