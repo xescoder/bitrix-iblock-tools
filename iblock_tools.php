@@ -56,7 +56,8 @@ class CIBlockTools
      * @return boolean
      */
     public static function Update(){
-        DeleteDirFilesEx('/bitrix/cache/' . self::$cacheKey);
+        $obCache = new CPHPCache();
+        $obCache->CleanDir('/'.self::$cacheKey.'/');
         return true;
     }
 
